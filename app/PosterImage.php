@@ -4,8 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Poster;
+use Image;
 
-class Album extends Model
+class PosterImage extends Model
 {
     /**
      * The attributes that should be mutated to dates.
@@ -13,6 +14,7 @@ class Album extends Model
      * @var array
      */
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+
 
     /**
      * The attributes that aren't mass assignable.
@@ -24,6 +26,11 @@ class Album extends Model
 
     public function poster()
     {
-        return $this->hasMany(Poster::class);
+        return $this->belongsTo(Poster::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(Image::class);
     }
 }
