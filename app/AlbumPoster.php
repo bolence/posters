@@ -3,9 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Poster;
 
-class Album extends Model
+class AlbumPoster extends Model
 {
     /**
      * The attributes that should be mutated to dates.
@@ -22,10 +21,8 @@ class Album extends Model
     protected $guarded = ['id'];
 
 
-    public function posters()
+    public function album()
     {
-        return $this->hasMany(AlbumPoster::class);
+        return $this->belongsTo(Album::class);
     }
-
-
 }

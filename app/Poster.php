@@ -24,8 +24,13 @@ class Poster extends Model
 
 
 
-    public function albums()
+    public function album()
     {
         return $this->belongsTo(Album::class);
+    }
+
+    public function poster_images()
+    {
+        return $this->hasMany(PosterImage::class);
     }
 }

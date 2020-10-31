@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Image;
 use DB;
+use App\Image;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 
 class ImageApiController extends Controller
 {
 
     /**
-     * List all image which is not posters
+     * List all image which is not a posters
      *
      * @return void
      */
@@ -23,7 +25,9 @@ class ImageApiController extends Controller
             $q->select('image_id')->from('poster_images');
         })->get();
 
-        return response()->json(['images' => $images], 200);
+        return response()->json([
+            'images' => $images
+        ], 200);
     }
 
     /**
@@ -33,6 +37,7 @@ class ImageApiController extends Controller
      */
     public function store(Request $request)
     {
+
         Storage::fake('s3');
 
         $request->validate([
@@ -42,9 +47,24 @@ class ImageApiController extends Controller
         $image = new Image;
         $filename = time() . "_" . $request->file->getClientOriginalName();
         $image->image_name = $filename;
-        $image->save();
+
+        try
+        {
+            $image->save();
+        }
+        catch( Exception $e )
+        {
+            Log::error('Unable to upload new image with message ' . $e->getMessage() . ' in file ' . $e->getFile());
+
+            return response()->json([
+                'message' => 'Unable to upload new image',
+                'error'   => $e->getMessage()
+            ], 400);
+        }
 
         Storage::disk('s3')->store('uploads', $filename );
+
+        Log::info('New image uploaded ' . $filename);
 
         return response()->json(['message' => "Image $filename successfully uploaded"], 200);
 
@@ -52,29 +72,37 @@ class ImageApiController extends Controller
 
 
     /**
-     * Undocumented function
+     * Delete image
      *
-     * @param [type] $id
-     * @return void
+     * @param integer $id
+     * @return Response json
      */
     public function destroy($id)
     {
         $image = Image::find($id);
-        
-        if( !$image )
+
+        if( ! $image )
         {
-            return;
+            return response()->json([
+                'message' => 'Unable to find image with ID: ' . $id
+            ], 400);
         }
 
-        $delete = $image->delete();
-
-        if( $delete )
+        try
         {
-            return response()->json(['message' => 'Successfully deleted'], 200);
+            $image->delete();
+        }
+        catch(Exception $e)
+        {
+            Log::error('Unable to delete image with message ' . $e->getMessage() . ' in file ' . $e->getFile());
+            return response()->json([
+                'message' => 'Unable to delete requested image'
+            ], 400);
         }
 
-        return response()->json(['message' => 'Unable to delete requested image'], 400);
+        return response()->json([
+            'message' => 'Image successfully deleted'
+            ], 200);
 
-        
     }
 }
