@@ -14,7 +14,7 @@ class AlbumApiController extends Controller
     /**
      * List all albums
      *
-     * @return Response json
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
@@ -49,7 +49,7 @@ class AlbumApiController extends Controller
         $posters = $request->input('posters');
 
         // we can add more posters at once to one album
-        if( count($posters) > 0 )
+        if( isset($posters) && count($posters) > 0 )
         {
             foreach ($posters as $poster_id)
             {
@@ -75,10 +75,11 @@ class AlbumApiController extends Controller
      *
      * @param  Request $request
      * @param  Integer $id
-     * @return Response json
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
     {
+
         $album = Album::find($id);
         $album->album_name = $request->input('album_name');
 
@@ -86,18 +87,32 @@ class AlbumApiController extends Controller
 
         try
         {
-            $saved = $album->save();
+            $album->save();
         }
         catch( Exception $e )
         {
 
-            Log::error('Unable to update album with error ' . $e->getMessage . ' on line ' . $e->getLine());
+            Log::error('Unable to update album with error ' . $e->getMessage() . ' on line ' . $e->getLine());
 
             return response()->json([
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
                 'message' => 'Unable to update album ' . $album->album_name
             ], 400);
 
+        }
+
+        if(isset($posters) && count($posters) > 0 )
+        {
+            foreach($posters as $id => $poster_id)
+            {
+                AlbumPoster::updateOrCreate([
+                    'album_id' => $id
+                ],
+                [
+                    'poster_id' => $poster_id
+                ]
+            );
+            }
         }
 
         return response()->json([
@@ -107,10 +122,10 @@ class AlbumApiController extends Controller
     }
 
     /**
-     * Delete album
+     * Delete album with related posters
      *
      * @param Integer $id
-     * @return Response json
+     * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
@@ -126,14 +141,17 @@ class AlbumApiController extends Controller
 
         try
         {
+            $album->posters()->delete();
             $album->delete();
+
         }
         catch( Exception $e )
         {
             Log::error('Unable to delete album with message ' . $e->getMessage() . ' in file ' . $e->getFile());
 
             return response()->json([
-                'message' => 'Unable to delete album'
+                'message' => 'Unable to delete album or related messages',
+                'error' => $e->getMessage(),
             ], 400);
         }
 

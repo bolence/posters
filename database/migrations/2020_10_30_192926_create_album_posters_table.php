@@ -14,7 +14,7 @@ class CreateAlbumPostersTable extends Migration
     public function up()
     {
         Schema::create('album_posters', function (Blueprint $table) {
-            $table->bigIncrements();
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('album_id');
             $table->unsignedBigInteger('poster_id');
             $table->foreign('album_id')->references('id')->on('albums')->onDelete('cascade');

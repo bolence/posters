@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use DB;
+use File;
 use App\Image;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class ImageApiController extends Controller
     /**
      * List all image which is not a posters
      *
-     * @return void
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
@@ -33,12 +34,10 @@ class ImageApiController extends Controller
     /**
      * Save image and store to server
      *
-     * @return void
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-
-        Storage::fake('s3');
 
         $request->validate([
             'file' => 'required|mimes:jpg,jpeg,png|max:2048'
@@ -62,7 +61,7 @@ class ImageApiController extends Controller
             ], 400);
         }
 
-        Storage::disk('s3')->store('uploads', $filename );
+        Storage::disk('local')->put($filename, File::get($request->file));
 
         Log::info('New image uploaded ' . $filename);
 
@@ -75,7 +74,7 @@ class ImageApiController extends Controller
      * Delete image
      *
      * @param integer $id
-     * @return Response json
+     * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
@@ -90,6 +89,7 @@ class ImageApiController extends Controller
 
         try
         {
+            Storage::delete($image->image_name);
             $image->delete();
         }
         catch(Exception $e)
@@ -101,7 +101,7 @@ class ImageApiController extends Controller
         }
 
         return response()->json([
-            'message' => 'Image successfully deleted'
+                'message' => 'Image successfully deleted'
             ], 200);
 
     }
