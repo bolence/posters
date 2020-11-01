@@ -17,8 +17,8 @@ class CreateAlbumPostersTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('album_id');
             $table->unsignedBigInteger('poster_id');
-            $table->foreign('album_id')->references('id')->on('albums')->onDelete('cascade');
-            $table->foreign('poster_id')->references('id')->on('posters');            ;
+            $table->foreign('album_id')->references('id')->on('albums');
+            $table->foreign('poster_id')->references('id')->on('posters');
             $table->timestamps();
         });
     }
