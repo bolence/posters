@@ -105,13 +105,7 @@ class AlbumApiController extends Controller
         {
             foreach($posters as $id => $poster_id)
             {
-                AlbumPoster::updateOrCreate([
-                    'album_id' => $id
-                ],
-                [
-                    'poster_id' => $poster_id
-                ]
-            );
+                AlbumPoster::updateOrCreate([ 'album_id' => $id ], [ 'poster_id' => $poster_id ] );
             }
         }
 
